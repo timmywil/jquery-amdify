@@ -4,10 +4,10 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>Future of Selectors - Timmy Willison</title>
+		<title>AMD in jQuery - Timmy Willison</title>
 
-		<meta name="description" content="The Future of Selectors (including highlights from Selectors Level 4)">
-		<meta name="keywords" content="selectors future timmy willison level 4 w3c">
+		<meta name="description" content="Presentation on AMD brought to the jQuery source">
+		<meta name="keywords" content="jquery amd modules javascript austin">
 		<meta name="author" content="Timmy Willison">
 
 		<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -39,335 +39,108 @@
 			<div class="slides">
 
 				<section id="intro">
-					<h1>The Future of Selectors</h1>
+					<h1>AMD-ifying jQuery Source</h1>
 					<p>
 						<small><a target="_blank" href="http://timmywillison.com">Timmy Willison</a> / <a target="_blank" href="http://twitter.com/timmywil">@timmywil</a></small>
 					</p>
 				</section>
 
-				<section id="history-css">
-					<h3>Just kidding, the <em>History</em> of Selectors</h3>
+				<section id="what-is-amd">
+					<h3>What is AMD?</h3>
+					<img width="200" src="images/amd.jpg" alt="AMD Superconductor">
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<img width="200" src="images/amd-graphics.jpg" alt="AMD Graphics">
+				</section>
+
+				<section id="what-is-amd-really">
+					<h3>... WHAT IS AMD?</h3>
+					<h4 class="fragment highlight-green">Asynchronous Module Definition</h4>
+					<h4 class="fragment roll-in">Workable javascript module system</h4>
+				</section>
+
+				<section data-state="blackout" id="modules-are-cool">
+					<h3>Modules are super-cool</h3>
+					<img alt="supercool" src="images/supercool.png">
+				</section>
+
+				<section id="burke">
+					<h3>King of Modules</h3>
+					<img alt="James Burke" src="images/burke.png">
+					<p><a href="http://requirejs.org/docs/whyamd.html">Why AMD?</a></p>
+				</section>
+
+				<section id="why-amd">
+					<h3>Why AMD?</h3>
 					<ul>
-						<li class="fragment roll-in">(1996) CSS 1.0</li>
-						<li class="fragment roll-in">(2004-2011) CSS 2.1</li>
-						<li class="fragment roll-in">~(1999-2012) CSS 3 Modules</li>
-						<li class="fragment roll-in">~(2011-present) CSS 4</li>
+						<li class="fragment roll-in">Browser specialty</li>
+						<li class="fragment roll-in">jQuery mobile (UI coming up)</li>
+						<li class="fragment roll-in">r.js</li>
 					</ul>
-					<aside class="notes">
-
-					</aside>
 				</section>
 
-				<section>
-					<!-- Full list of engines here http://www.paulirish.com/2008/javascript-css-selector-engine-timeline/ -->
-					<section id="history-js">
-						<h2>CSS Selectors in Javascript</h2>
-						<a href="#" class="image navigate-down">
-							<img width="178" height="238" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
-						</a>
-					</section>
-					<section data-markdown id="getElementsBySelector">
-					### Simon Willison's getElementsBySelector
-					(3/25/03)
-					```js
-function getAllChildren(e) {
-  // Returns all children of element. Workaround required for IE5/Windows. Ugh.
-  return e.all ? e.all : e.getElementsByTagName('*');
-}
-
-document.getElementsBySelector = function(selector) {
-  // Attempt to fail gracefully in lesser browsers
-  if (!document.getElementsByTagName) {
-    return new Array();
-  }
-  // Split selector in to tokens
-  var tokens = selector.split(' ');
-  var currentContext = new Array(document);
-  for (var i = 0; i < tokens.length; i++) {
-    token = tokens[i].replace(/^\s+/,'').replace(/\s+$/,'');
-					```
-					</section>
-					<section data-markdown id="cssQuery">
-					### cssQuery 1.0 && 2.0
-					(4/10/04 && 8/19/05)
-					```js
-var cssQuery = function() {
-	// constants
-	var STANDARD_SELECT = /^[^>\+~\s]/;
-	var STREAM = /[\s>\+~:@\*#\.]|[^\s>\+~:@\*#\.]+/g;
-	var NAMESPACE = /\|/;
-	var IMPLIED_SELECTOR = /([\s>\+~\,]|^)([\.:#@])/g;
-	var ASTERISK ="$1*$2";
-	var QUOTED = /([\'\"])[^\1]*\1/;
-	var WHITESPACE = /^\s+|\s*([\+\,>\s;:])\s*|\s+$/g;
-	var TRIM = "$1";
-	var NODE_ELEMENT = 1;
-	var NODE_TEXT = 3;
-					```
-					</section>
-					<section data-markdown id="jQuery">
-						### jQuery
-						(1/14/06)
-						```js
-	jQuery.g = {
-		"": "m[2]== '*'||a.nodeName.toUpperCase()==m[2].toUpperCase()",
-		"#": "a.getAttribute('id')&&a.getAttribute('id')==m[2]",
-		":": {
-			lt: "i<m[3]-0",
-			gt: "i>m[3]-0",
-			nth: "m[3]-0==i",
-			eq: "m[3]-0==i",
-			first: "i==0",
-			last: "i==r.length-1",
-			even: "i%2==0",
-			odd: "i%2==1",
-			"first-child": "jQuery.sibling(a,0).cur",
-					```
-					</section>
-					<section data-markdown id="prototype">
-					### Prototype
-					(1/18/06)
-					```js
-var Selector = Class.create();
-Selector.prototype = {
-  initialize: function(expression) {
-    this.params = {classNames: []};
-    this.expression = expression.toString().strip();
-    this.parseExpression();
-    this.compileMatcher();
-  },
-
-  parseExpression: function() {
-    function abort(message) { throw 'Parse error in selector: ' + message; }
-					```
-					</section>
-					<section data-markdown id="moo.dom">
-						### moo.dom
-						(4/4/06)
-						```js
-getElementsBySelector: function(filter){
-		if (!filter) filter = null;
-		var elements = [];
-		this.split(',').each(function(selector){
-			elmnts = selector.replace(/^\s*|\s*$/g,"").getElements(filter);
-			elmnts.each(function(el){
-				elements.push(el);
-			});
-		});
-						```
-					</section>
-					<section id="timeline">
-						<h3>Boom</h3>
-						<ul>
-							<li>(8/26/2006):  <a target="_blank" href="https://github.com/jquery/jquery/blob/1.0/src/jquery/jquery.js">jQuery 1.0</a></li>
-							<li>(11/14/2006): <a target="_blank" href="http://mochi.github.io/mochikit/doc/html/MochiKit/Selector.html">Mochikit Selector. (orig. ported from prototype)</a></li>
-							<li>(1/8/2007):   <a target="_blank" href="https://github.com/jquery/jquery/blob/1.1a/src/jquery/jquery.js">jQuery 1.1a ("10-20x faster than 1.0")</a></li>
-							<li>(1/11/2007):  <a target="_blank" href="http://www.lib.virginia.edu/scripts/yui_ext-1.0.1/docs/output/DomQuery.jss.html">DomQuery by Jack Slocum (ExtJS)</a></li>
-							<li>(2/5/2007):   <a target="_blank" href="https://bugs.dojotoolkit.org/browser/trunk/src/query.js">dojo.query()</a></li>
-							<li>(3/21/2007):  <a target="_blank" href="http://base2.googlecode.com/svn/version/1.0(beta2)/src/base2-dom.js">base2.DOM</a></li>
-							<li>(5/1/2007):   <a target="_blank" href="http://prototypejs.org/assets/2007/5/1/prototype.js">Prototype 1.5.1</a></li>
-							<li>(5/7/2007):   <a target="_blank" href="https://www.versioneye.com/package/mootools--mootools-core/version/1~10">Mootools 1.1</a></li>
-							<li>(7/1/2007):   <a target="_blank" href="https://github.com/jquery/jquery/blob/1.1.3.1/src/selector/selector.js">jQuery 1.1.3 (“800% faster”)</a></li>
-							<li>(7/10/2007):  <a target="_blank" href="http://www.sencha.com/blog/css-selectors-speed-myths">Ext 1.1 RC1</a></li>
-							<li>(7/10/2007):  <a target="_blank" href="http://download.dojotoolkit.org/release-0.9.0/dojo-release-0.9.0-src/dojo/_base/query.js">Dojo 0.9</a></li>
-							<li>(12/4/2007):  <a target="_blank" href="http://yui.yahooapis.com/2.4.1/build/selector/selector-beta-debug.js">YUI 2.4.0</a></li>
-							<li>(12/17/2007): <a target="_blank" href="http://nwevents.googlecode.com/svn/trunk/nwmatcher.js">NWMatcher by Diego Perini</a></li>
-						</ul>
-
-						<p><small>Sourced from <a target="_blank" href="http://www.paulirish.com/2008/javascript-css-selector-engine-timeline/">that guy Paul's blog</a></small></p>
-					</section>
+				<section id="steve">
+					<h2>Changing the World</h2>
+					<img alt="Steve Jobs changing the world" src="images/steve.jpg" height="400">
 				</section>
 
-				<section data-state="blackout" id="qsa">
-					<h2>Game changer: querySelectorAll</h2>
-					<a class="image" href="http://www.w3.org/TR/2007/WD-selectors-api-20071019/" target="_blank">
-						<img src="images/qsa-working-draft.png" alt="QSA Working Draft">
-					</a>
+				<section id="old-jquery">
+					<h2>Old jQuery</h2>
+					<img alt="Old modules" src="images/old.png" width="60%">
 				</section>
 
-				<section id="performance">
-					<h2>Performance everywhere! <small>(2008)</small></h2>
-					<a class="image" href="http://ejohn.org/blog/queryselectorall-in-firefox-31/" target="_blank">
-						<img width="912" height="684" src="http://ejohn.org/files/qsa-blog.full.png" alt="QSA performance in engines">
-					</a>
+				<section id="sane">
+					<h2>Keep Us Sane!</h2>
+					<img alt="Sane Developers" src="images/sane.png">
 				</section>
 
-				<section id="sizzle">
-					<h2>WTF Sizzle? Why-how?</h2>
-					<br/>
-					<p class="fragment highlight-red">Can't I just use querySelectorAll?</p>
+				<section id="problems">
+					<h2>Problems</h2>
+					<ul>
+						<li class="fragment roll-in">Not usable individually without building</li>
+						<li class="fragment roll-in">Tracked dependencies manually</li>
+						<li class="fragment roll-in">Limited builds</li>
+					</ul>
 				</section>
 
-				<section data-state="alert" id="warnings">
-					<h2>WARNING</h2>
-					<img class="warning-image" width="523" height="300" src="images/native-warnings.png" alt="selector-native.js warnings">
-					<p>* use of this product may cause serious injury or even death</p>
+				<section id="new-jquery">
+					<h2>New jQuery</h2>
+					<ul>
+						<li class="fragment">Main modules still there, with AMD wrappers</li>
+						<li class="fragment">The core of core is the only core</li>
+						<li class="fragment">No more interdependency</li>
+						<li class="fragment">Clears the path for even further fragmentation</li>
+					</ul>
 				</section>
 
-				<section id="scope">
-					<h2>Scope</h2>
-					<img width="400" height="400" src="images/scope.jpg" alt="Scope Mouthwash">
-					<a href="http://jsfiddle.net/timmywil/swnvb/5/">http://jsfiddle.net/timmywil/swnvb/5/</a>
-					<aside class="notes">
-						While the results of an element-rooted call to querySelector and querySelectorAll are limited to the descendents of that element, the selector itself is not relative to the element.
-						<a href="http://jsfiddle.net/timmywil/swnvb/5/">http://jsfiddle.net/timmywil/swnvb/5/</a>
-					</aside>
+				<section id="build-jquery">
+					<h2>Build?? I am excite!</h2>
+					<img alt="Building" src="images/building.jpeg" width="400">
 				</section>
 
-				<section id="john-quote">
-					<div class="fragment shrink">
-						<blockquote cite="http://ejohn.org/blog/thoughts-on-queryselectorall/">
-							&ldquo;This is completely unacceptable. Not only is it not intuitive (finding elements that don’t match
-							the correct expression) but it goes against what every single JavaScript library provides.&rdquo;
-						</blockquote>
-						<small><em>- John Resig</em></small>
-					</div>
-					<blockquote cite="http://ejohn.org/blog/thoughts-on-queryselectorall/">
-					This is a spec bug.
-					</blockquote>
-					<small><em>- Alex Russell (creator of Dojo’s selector engine)</em></small>
+				<section id="real-world-modules">
+					<h3>Real world modules</h3>
+					<p>Examples time</p>
 				</section>
 
-				<section data-markdown id="scoped">
-					## The scoped attribute
-					Brings the concept of scope to CSS
-					```html
-					&lt;style scoped&gt;
-						ul li { background: blue; }
-					&lt;/style&gt;
-					```
+				<section id="amd-builds">
+					<h2>AMD + Building</h2>
+					<ul>
+						<li class="fragment">Reduce network requests</li>
+						<li class="fragment">Reduce size</li>
+						<li class="fragment">Flexible, pliable builds</li>
+					</ul>
 				</section>
 
-				<section>
-					<section id="selectors-4">
-						<h2>Selectors Level 4 Highlights</h2>
-						<a href="#" class="image navigate-down">
-							<img width="178" height="238" src="https://s3.amazonaws.com/hakim-static/reveal-js/arrow.png" alt="Down arrow">
-						</a>
-					</section>
-					<section data-markdown id="matches">
-						## `:matches()`
-						```css
-						/* this */
-						a:link, a:visited, a:hover, a:active { color: red; }
-						/* becomes this */
-						a:matches(:link, :visited, :hover, :active) { color: red; }
-
-						/* and more... */
-						input:matches(:target, :focus)
-						div:matches(.animated, .visible, #main)
-						```
-					</section>
-					<section data-markdown id="reference">
-						## Reference combinators `/attr/`
-						```css
-						label:matches(:hover, :focus) /for/ input
-						#post5:hover /data-ad/ aside { text-shadow: black 0 0 20px; }
-						```
-					</section>
-					<section data-markdown id="insensitive">
-						## case-insensitive attributes
-						```css
-						.superman[data-power='flying' i]
-						```
-					</section>
-					<section data-markdown id="links">
-						## :any-link && :local-link
-						```css
-						:any-link { color: blue; }
-						:local-link { color: green; }
-						/* pass the number of levels in the path */
-						:local-link(1) { color: orange; } /* http://jquery.com/download/ */
-						:local-link(3) { color: red; } /* http://jquery.com/download/more/stuff/ */
-						```
-					</section>
-					<section data-markdown id="blank">
-						## :blank
-						Excludes whitespace
-						```
-						&lt;p&gt;     &lt;/p&gt; &lt;!-- ← Does not match :empty --&gt;
-						```
-					</section>
-					<section data-markdown id="nth-match">
-						### :nth[-last]-match(An+B of selector)
-						```css
-						/* huge! */
-						p.foo:nth-match(even)
-						option:nth-match(-1n+4 of :selected) /* first four */
-						```
-					</section>
-					<section data-markdown id="subject">
-						## Subject selector
-						```html
-						&lt;nav&gt;
-							&lt;ul&gt;
-								&lt;li&gt;&lt;a href="#"&gt;One&lt;/a&gt;&lt;/li&gt;
-								&lt;li&gt;&lt;a href="#"&gt;Two&lt;/a&gt;&lt;/li&gt;
-								&lt;li&gt;&lt;a href="#"&gt;Three&lt;/a&gt;&lt;/li&gt;
-							&lt;/ul&gt;
-						&lt;/nav&gt;
-						```
-						```css
-						/* Sets the background of the list element */
-						nav > ul > !li > a:hover { background: gray; }
-						/* Adds shadow to the ul */
-						nav > !ul > li > a:hover { box-shadow: 0 0 10px black; }
-						```
-					</section>
-					<section data-markdown id="scope2">
-						## Back to `:scope`
-						```html
-						&lt;article id="outside-scope"&gt;&lt;/article&gt;
-						&lt;section&gt;
-							&lt;style scoped&gt;
-							/* will not match #outside-scope */
-							article { background: green; }
-							/* same as */
-							:scope article { background: green; }
-							&lt;/style&gt;
-							&lt;article id="inside-scope"&gt;&lt;/article&gt;
-						&lt;/section&gt;
-						```
-						Javascript
-						```js
-						el.querySelectorAll(':scope body ul a').length; // => 0 yay!
-						```
-					</section>
+				<section data-state="alert" id="future">
+					<h2>Future Roadmap</h2>
+					<ul>
+						<li class="fragment">jQuery Mobile and UI to list core dependencies</li>
+						<li class="fragment">Further fragmentation</li>
+						<li class="fragment">Grunt task for building jQuery</li>
+					</ul>
 				</section>
 
-				<section data-markdown id="scope-no-siblings">
-					## Limited to descendants _only_
-					```js
-					elem.querySelectorAll(":scope + div");
-					```
-					This doesn't return anything.
-				</section>
-
-				<section id="findAll">
-					<h1>findAll</h1>
-				</section>
-
-				<section id="replace-sizzle">
-					<h2>The New Sizzle</h2>
-					<pre class="fragment grow"><code>
-jQuery.find = function( selector, context ) {
-	return context.findAll( selector );
-}
-					</code></pre>
-				</section>
-
-				<section id="gravy">
-					<img src="images/gravy.jpg" width="800" height="538" alt="Just Gravy">
-
-					<div class="fragment">
-						<blockquote cite="http://ejohn.org/blog/queryselectorall-in-firefox-31/">
-							&ldquo;Everything after this is <em>just gravy</em>.&rdquo;
-						</blockquote>
-						<small><em>- John</em></small>
-					</div>
-				</section>
-
-				<section>
+				<section data-state="alert" id="thanks">
 					<h1>Questions?</h1>
 					<p><a href="http://twitter.com/timmywil">@timmywil</a></p>
 					<p><a href="http://timmywillison.com">timmywillison.com</a></p>
